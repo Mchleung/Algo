@@ -3,19 +3,21 @@ from Back_Test import *
 
 # factor model, or decision tree model for detecting crisis
 
-
 def prepare_data(context):
     context.external_data()
-    context.data["VIX_rtn_10"] = context.data["Adj Close"]["^VIX"].shift(-1) / context.data["Adj Close"]["^VIX"].rolling(10).min() -1
-    context.data["VIX_rtn_10_pos"] = context.data["Adj Close"]["^VIX"].shift(-1) / context.data["Adj Close"]["^VIX"].rolling(
+    context.data["VIX_rtn_10"] = context.data["Adj Close"]["^VIX"].shift(-1) / context.data["Adj Close"][
+        "^VIX"].rolling(10).min() - 1
+    context.data["VIX_rtn_10_pos"] = context.data["Adj Close"]["^VIX"].shift(-1) / context.data["Adj Close"][
+        "^VIX"].rolling(
         10).max() - 1
+
 
 def strategy(date, df, asset, context):
     # maintain 25% of gold, treasury bond , SPY and cash for rebalance
     context.strategy_name = "Crisis"
 
     try:
-        if (context.indicator.HY.loc[date,"HY_rtn_10"] >= 0.1) :
+        if (context.indicator.HY.loc[date, "HY_rtn_10"] >= 0.1):
             context.clear_pos()
             # 20% of cash
             context.order_by_weight("TLT", 0.4, df["Adj Close"].loc[date, "TLT"])
@@ -26,17 +28,19 @@ def strategy(date, df, asset, context):
                 context.crisis_empty_period += 1
         else:
             if context.crisis_empty_period != 0:
-                if context.crisis_empty_period -1 ==0:
+                if context.crisis_empty_period - 1 == 0:
                     context.clear_pos()
                 # see if the high yield index drop back, signal market recover
-                if context.indicator.HY.loc[date,"HY_rtn_10_pos"] <= -0.1 and float(context.data.loc[date,"VIX_rtn_10_pos"]) >= 0.1:
+                if context.indicator.HY.loc[date, "HY_rtn_10_pos"] <= -0.1 and float(
+                        context.data.loc[date, "VIX_rtn_10_pos"]) >= 0.1:
                     context.crisis_empty_period = 0
                     context.clear_pos()
                     return
-                context.crisis_empty_period -=1
+                context.crisis_empty_period -= 1
 
     except KeyError:
         return
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -56,10 +60,9 @@ if __name__ == '__main__':
     context = Backtest(cash, date_df[0])
     context.date_df = date_df
 
-
     asset_list = "SPY GLD TLT ^VIX ^TNX ^FVX"
 
-    context.load_asset_list(asset_list,"2007-07-02",ytd)
+    context.load_asset_list(asset_list, "2007-07-02", ytd)
     prepare_data(context)
 
     # enter daily or monthly for the rebalance period

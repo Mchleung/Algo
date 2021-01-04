@@ -7,13 +7,17 @@ from datetime import timedelta
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly as py
-# import monthly_returns_heatmap as mrh
 import seaborn as sns
 import matplotlib.pyplot as plt
 import yfinance as yf
 from scipy import stats
 import math
+import numpy as np
 from Back_Test import *
+
+def daily_log_difference(context):
+    for ticker in context.asset_list:
+        context.indicator.rtn[ticker + "rtn"] = (np.log(context.data["Adj Close"][ticker])).diff()
 
 def simple_moving_average(context):
     for ticker in context.asset_list:
